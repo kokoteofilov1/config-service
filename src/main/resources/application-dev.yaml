@@ -1,0 +1,6 @@
+database:
+  host: localhost
+  port: 5432
+  name: config-service-db
+  username: postgres
+  password: postgres
