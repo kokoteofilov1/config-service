@@ -8,6 +8,8 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public class ConfigurationRepository {
 
@@ -31,6 +33,27 @@ public class ConfigurationRepository {
                     CAST(:status AS config_status),
                     :created_by
             );
+            """;
+
+    private final static String FIND_CONFIGURATION_BY_SERVICE = """
+            SELECT *
+            FROM configurations
+            WHERE service_name = :service_name
+            """;
+
+    private final static String FIND_CONFIGURATION_BY_SERVICE_AND_ENVIRONMENT = """
+            SELECT *
+            FROM configurations
+            WHERE service_name = :service_name
+            AND environment = :environment
+            """;
+
+    private static final String FIND_CONFIGURATION_BY_SERVICE_AND_ENVIRONMENT_AND_KEY = """
+            SELECT *
+            FROM configurations
+            WHERE service_name = :service_name
+            AND environment = :environment
+            AND config_key = :config_key
             """;
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
@@ -59,5 +82,38 @@ public class ConfigurationRepository {
                             new String[]{"id"});
 
         return keyHolder.getKeyAs(Long.class);
+    }
+
+    public List<Configuration> findConfigurationsByService(String serviceName) {
+        final MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("service_name", serviceName);
+
+        return jdbcTemplate.query(FIND_CONFIGURATION_BY_SERVICE,
+                                  params,
+                                  rowMapper);
+    }
+
+    public List<Configuration> findConfigurationsByServiceAndEnvironment(String serviceName,
+                                                                         String environment) {
+        final MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("service_name", serviceName);
+        params.addValue("environment", environment);
+
+        return jdbcTemplate.query(FIND_CONFIGURATION_BY_SERVICE_AND_ENVIRONMENT,
+                                  params,
+                                  rowMapper);
+    }
+
+    public List<Configuration> findConfigurationByServiceAndEnvironmentAndKey(String serviceName,
+                                                                              String environment,
+                                                                              String key) {
+        final MapSqlParameterSource params = new MapSqlParameterSource();
+        params.addValue("service_name", serviceName);
+        params.addValue("environment", environment);
+        params.addValue("config_key", key);
+
+        return jdbcTemplate.query(FIND_CONFIGURATION_BY_SERVICE_AND_ENVIRONMENT_AND_KEY,
+                                  params,
+                                  rowMapper);
     }
 }
