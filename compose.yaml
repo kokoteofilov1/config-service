@@ -12,31 +12,39 @@ services:
       - 'config-service-postgres-data:/var/lib/postgresql/data'
   kafka:
     image: 'confluentinc/cp-kafka:latest'
-    container_name: 'kafka'
+    container_name: 'config-service-kafka'
     ports:
       - '9092:9092'
     environment:
       # KRaft mode: this node is both broker and controller
       KAFKA_PROCESS_ROLES: 'broker,controller'
       KAFKA_NODE_ID: 1
-
       # Raft controller quorum (single-node: this broker is the only voter)
       KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:29093'
-
       # Listeners: one for clients (PLAINTEXT), one internal for controllers
       KAFKA_LISTENERS: 'PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:29093'
       KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://localhost:9092'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
-
       # Single-node dev cluster ID (22-char base64-ish string; any fixed value is fine for dev)
       KAFKA_CLUSTER_ID: 'abcdefghijklmnopqrstuvwx'
-
       # Misc dev settings
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+  redis:
+    image: 'redis:7-alpine'
+    container_name: 'config-service-redis'
+    ports:
+      - "6379:6379"
+    #disable persistence and set eviction policy
+    command: [
+      "redis-server",
+      "--appendonly", "no",
+      "--maxmemory", "256mb",
+      "--maxmemory-policy", "allkeys-lru"
+    ]
 volumes:
   config-service-postgres-data:

@@ -1,0 +1,28 @@
+package com.playtech.config_service.configuration.config;
+
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.RedisSerializer;
+
+@Configuration
+@EnableCaching
+public class RedisConfig {
+
+    @Bean
+    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
+
+        final RedisSerializer<Object> jsonSerializer = RedisSerializer.json();
+
+        final RedisCacheConfiguration config =
+                RedisCacheConfiguration.defaultCacheConfig().serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(jsonSerializer));
+
+        return RedisCacheManager.builder(connectionFactory)
+                                .cacheDefaults(config)
+                                .build();
+    }
+}

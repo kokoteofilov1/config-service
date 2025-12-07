@@ -8,3 +8,7 @@ database:
 kafka:
   bootstrap-servers: localhost
   port: 9092
+
+redis:
+  host: localhost
+  port: 6379
