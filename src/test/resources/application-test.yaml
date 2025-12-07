@@ -6,3 +6,16 @@ spring:
     username: ${database.username}
     password: ${database.password}
     driver-class-name: org.postgresql.Driver
+  docker:
+    compose:
+      enabled: true
+      file: src/test/docker/compose.yaml
+      skip:
+        in-tests: false
+
+database:
+  host: localhost
+  port: 5432
+  name: config-service-db
+  username: postgres
+  password: postgres

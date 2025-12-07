@@ -1,15 +1,10 @@
 services:
   postgres:
     image: 'postgres:latest'
-    container_name: 'config-service-postgres'
+    container_name: 'config-service-postgres-test'
     environment:
       - 'POSTGRES_DB=config-service-db'
       - 'POSTGRES_PASSWORD=postgres'
       - 'POSTGRES_USER=postgres'
     ports:
       - '5432:5432'
-    volumes:
-      - 'config-service-postgres-data:/var/lib/postgresql/data'
-
-volumes:
-  config-service-postgres-data:
