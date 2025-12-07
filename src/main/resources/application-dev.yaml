@@ -4,3 +4,7 @@ database:
   name: config-service-db
   username: postgres
   password: postgres
+
+kafka:
+  bootstrap-servers: localhost
+  port: 9092

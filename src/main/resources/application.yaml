@@ -1,8 +1,23 @@
 spring:
   application:
     name: config-service
+
   datasource:
     url: jdbc:postgresql://${database.host}:${database.port}/${database.name}
     username: ${database.username}
     password: ${database.password}
     driver-class-name: org.postgresql.Driver
+
+  kafka:
+    bootstrap-servers: ${kafka.bootstrap-servers}:${kafka.port}
+    producer:
+      acks: all
+      retries: 3
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    properties:
+      spring.json.trusted.packages: com.playtech.config_service.configuration.model
+
+config:
+  kafka:
+    topic: "configuration-updates"
