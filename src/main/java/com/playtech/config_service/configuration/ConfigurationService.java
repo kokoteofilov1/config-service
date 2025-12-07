@@ -5,6 +5,7 @@ import com.playtech.config_service.configuration.model.ConfigurationCreatedEvent
 import com.playtech.config_service.configuration.model.ConfigurationRequest;
 import com.playtech.config_service.configuration.persistence.ConfigurationRepository;
 import com.playtech.config_service.configuration.util.ConfigurationValidator;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -63,6 +64,10 @@ public class ConfigurationService {
         return inserted.id();
     }
 
+    @Cacheable(
+            cacheNames = "configurationsList",
+            key = "T(String).format('%s-%s-%s', #serviceName, #environment == null ? '' : #environment, #key == null ? '' : #key)"
+    )
     public List<Configuration> getConfigurations(String serviceName,
                                                  String environment,
                                                  String key) {
@@ -87,6 +92,10 @@ public class ConfigurationService {
         return configurations;
     }
 
+    @Cacheable(
+            cacheNames = "latestConfiguration",
+            key = "T(String).format('%s-%s-%s', #serviceName, #environment, #key)"
+    )
     public Optional<Configuration> getLatestConfiguration(String serviceName,
                                                           String environment,
                                                           String key) {

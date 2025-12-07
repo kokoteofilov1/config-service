@@ -18,6 +18,17 @@ spring:
     properties:
       spring.json.trusted.packages: com.playtech.config_service.configuration.model
 
+  data:
+    redis:
+      host: ${redis.host}
+      port: ${redis.port}
+  cache:
+    type: redis
+
 config:
   kafka:
     topic: "configuration-updates"
+
+redis:
+  configuration-write-through-cache: latestConfiguration
+  configuration-cache-aside-cache: configurationsList
