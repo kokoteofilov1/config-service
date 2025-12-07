@@ -35,7 +35,8 @@ public class ConfigurationRepository {
                     :version,
                     CAST(:status AS config_status),
                     :created_by
-            );
+            )
+            RETURNING *;
             """;
 
     private final static String UPDATE_CONFIGURATION_STATUS_TO_DEPRECATED_SQL = """
@@ -85,7 +86,7 @@ public class ConfigurationRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public Long insert(ConfigurationRequest configuration, int version) {
+    public Configuration insert(ConfigurationRequest configuration, int version) {
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("service_name", configuration.serviceName());
         params.addValue("environment", configuration.environment());
@@ -99,12 +100,9 @@ public class ConfigurationRepository {
 
         final GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
 
-        jdbcTemplate.update(INSERT_CONFIGURATION_SQL,
-                            params,
-                            keyHolder,
-                            new String[]{"id"});
-
-        return keyHolder.getKeyAs(Long.class);
+        return jdbcTemplate.queryForObject(INSERT_CONFIGURATION_SQL,
+                                           params,
+                                           rowMapper);
     }
 
     public List<Configuration> findByService(String serviceName) {

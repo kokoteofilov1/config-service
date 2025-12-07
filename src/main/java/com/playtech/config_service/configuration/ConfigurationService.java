@@ -1,12 +1,15 @@
 package com.playtech.config_service.configuration;
 
 import com.playtech.config_service.configuration.model.Configuration;
+import com.playtech.config_service.configuration.model.ConfigurationCreatedEvent;
 import com.playtech.config_service.configuration.model.ConfigurationRequest;
 import com.playtech.config_service.configuration.persistence.ConfigurationRepository;
 import com.playtech.config_service.configuration.util.ConfigurationValidator;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,49 +19,48 @@ public class ConfigurationService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationService.class);
 
     private final ConfigurationRepository configurationRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public ConfigurationService(ConfigurationRepository configurationRepository) {
+    public ConfigurationService(ConfigurationRepository configurationRepository,
+                                ApplicationEventPublisher eventPublisher) {
         this.configurationRepository = configurationRepository;
+        this.eventPublisher = eventPublisher;
     }
 
+    @Transactional
     public Long createConfiguration(ConfigurationRequest configurationRequest) {
         ConfigurationValidator.validateConfigurationRequest(configurationRequest);
-
-        final Long insertedId;
 
         final Optional<Configuration> latest =
                 configurationRepository.findLatestByServiceAndEnvironmentAndKey(configurationRequest.serviceName(),
                                                                                 configurationRequest.environment(),
                                                                                 configurationRequest.key());
 
-        if (latest.isEmpty()) {
-            insertedId = configurationRepository.insert(configurationRequest, 1);
+        final boolean isCreate = latest.isEmpty();
+        final int nextVersion;
 
-            LOGGER.info("Created configuration: service={}, env={}, key={}, createdBy={}",
-                        configurationRequest.serviceName(),
-                        configurationRequest.environment(),
-                        configurationRequest.key(),
-                        configurationRequest.user());
-
-            return insertedId;
+        if (isCreate) {
+            nextVersion = 1;
+        } else {
+            nextVersion = latest.get().version() + 1;
+            deprecateExistingConfigurations(configurationRequest.serviceName(),
+                                            configurationRequest.environment(),
+                                            configurationRequest.key());
         }
 
-        final Integer latestVersion = latest.get().version();
+        final Configuration inserted = configurationRepository.insert(configurationRequest, nextVersion);
 
-        deprecateExistingConfigurations(configurationRequest.serviceName(),
-                                        configurationRequest.environment(),
-                                        configurationRequest.key());
-
-        insertedId = configurationRepository.insert(configurationRequest, latestVersion + 1);
-
-        LOGGER.info("Updated configuration to version={}: service={}, env={}, key={}, createdBy={}",
-                    latestVersion,
+        LOGGER.info("{} configuration version={}: service={}, env={}, key={}, createdBy={}",
+                    isCreate ? "Created" : "Updated",
+                    nextVersion,
                     configurationRequest.serviceName(),
                     configurationRequest.environment(),
                     configurationRequest.key(),
                     configurationRequest.user());
 
-        return insertedId;
+        eventPublisher.publishEvent(new ConfigurationCreatedEvent(inserted));
+
+        return inserted.id();
     }
 
     public List<Configuration> getConfigurations(String serviceName,
