@@ -84,7 +84,7 @@ public class ConfigurationRepository {
         return keyHolder.getKeyAs(Long.class);
     }
 
-    public List<Configuration> findConfigurationsByService(String serviceName) {
+    public List<Configuration> findByService(String serviceName) {
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("service_name", serviceName);
 
@@ -93,8 +93,8 @@ public class ConfigurationRepository {
                                   rowMapper);
     }
 
-    public List<Configuration> findConfigurationsByServiceAndEnvironment(String serviceName,
-                                                                         String environment) {
+    public List<Configuration> findByServiceAndEnvironment(String serviceName,
+                                                           String environment) {
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("service_name", serviceName);
         params.addValue("environment", environment);
@@ -104,9 +104,9 @@ public class ConfigurationRepository {
                                   rowMapper);
     }
 
-    public List<Configuration> findConfigurationByServiceAndEnvironmentAndKey(String serviceName,
-                                                                              String environment,
-                                                                              String key) {
+    public List<Configuration> findByServiceAndEnvironmentAndKey(String serviceName,
+                                                                 String environment,
+                                                                 String key) {
         final MapSqlParameterSource params = new MapSqlParameterSource();
         params.addValue("service_name", serviceName);
         params.addValue("environment", environment);

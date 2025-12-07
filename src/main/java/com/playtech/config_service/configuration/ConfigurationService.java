@@ -40,13 +40,13 @@ public class ConfigurationService {
         final List<Configuration> configurations;
 
         if (environment == null && key == null) {
-            configurations = configurationRepository.findConfigurationsByService(serviceName);
+            configurations = configurationRepository.findByService(serviceName);
         } else if (key == null) {
-            configurations = configurationRepository.findConfigurationsByServiceAndEnvironment(serviceName, environment);
+            configurations = configurationRepository.findByServiceAndEnvironment(serviceName, environment);
         } else {
-            configurations = configurationRepository.findConfigurationByServiceAndEnvironmentAndKey(serviceName,
-                                                                                                    environment,
-                                                                                                    key);
+            configurations = configurationRepository.findByServiceAndEnvironmentAndKey(serviceName,
+                                                                                       environment,
+                                                                                       key);
         }
 
         LOGGER.info("Read {} configurations for service={}, environment={}, key={}",
